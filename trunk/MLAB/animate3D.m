@@ -67,6 +67,7 @@ function animate3D(filePath, numPoints, axisMax)
 		open(myVideo);
 	end
 
+   %set plot dimensions
 	figHandle = figure;
 	figPos = get(figHandle,'position');
 	figPos(3) = width;
@@ -84,10 +85,9 @@ function animate3D(filePath, numPoints, axisMax)
 			scatter3(data(1,:,frame), data(2,:,frame), data(3,:,frame),...
 				20, 'o',... % markersize and type
 				'lineWidth',1, 'markerFaceColor',[.8,.8,.8] ) %grey
-
-
 		end
-		%set axis limits
+  	
+  	%set axis limits
 		xlim([-axisMax axisMax])
 		ylim([-axisMax axisMax])
 		zlim([-axisMax axisMax])
