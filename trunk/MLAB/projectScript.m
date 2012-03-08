@@ -20,7 +20,7 @@ outputFilePath = 'aarseth.data'; % this was defined in Aarseth code
 pathToAarseth =  '../bin/aarseth';
 
 % for plot/animation
-axisMax = 1;
+axisMax = 1; % sets the range for plot axis to (+) or (-) axisMax
 
 % Aarseth Parameters (remember G = 1)
 numberOfPts =    1000;
@@ -45,7 +45,7 @@ R = maxRadius*rand(numberOfPts,1);
 theta = pi*rand(numberOfPts,1);
 phi = 2*pi*rand(numberOfPts,1);
 
-% .* is element wise multiplication (not dot product)
+% '.*' is element wise multiplication (not dot product)
 x = R.*cos(phi).*sin(theta);
 y = R.*sin(phi).*sin(theta);
 z = R.*cos(theta);

@@ -15,12 +15,13 @@ REVISIONS:
 %}
 
 function animate3D(filePath, numPoints, axisMax)
-	% set below to true to enable Octave compatability (requires ffmpeg)
+	% set below to true to enable GNU Octave compatability (requires ffmpeg)
+	% this will aslo create a tempPNG folder containing PNG images of the plots in your working directory
 	Use_Octave = false; %true;
 
-	%DEFAULT PARAMETERS (could easily add more parameters to to function)
+	% DEFAULT PARAMETERS (could easily add more parameters to the function)
 
-	%the following are passed as function parameters instead
+	% the following are passed as function parameters instead:
 	%filePath = 'data4D.txt'; % output from Aarseth code (or anything you want)
 	%numPoints = 10000; % number of points in simulation data (or in each frame)
 	%axisMax = 10; % range for each plot axis = -axisMax to +axisMax (in your length units)
@@ -67,7 +68,7 @@ function animate3D(filePath, numPoints, axisMax)
 		open(myVideo);
 	end
 
-   %set plot dimensions
+    %set plot dimensions
 	figHandle = figure;
 	figPos = get(figHandle,'position');
 	figPos(3) = width;
@@ -75,12 +76,13 @@ function animate3D(filePath, numPoints, axisMax)
 	set(figHandle,'position',figPos); 
 
 	%the above gets ignored when printing figures in Octave (need to use printer properties instead):
-	set(gcf, 'PaperPosition', [0 0 (width/dpi) (height/dpi)]);
+	set(figHandle, 'PaperPosition', [0 0 (width/dpi) (height/dpi)]);
 
 	for frame = 1:numFrames
 
 		if Use_Octave
-			plot3(data(1,:,frame), data(2,:,frame), data(3,:,frame),'o') % scatter3 is way to slow in current version of Octave
+		    % scatter3 is way to slow in current version of Octave, so we use plot3 instead:
+			plot3(data(1,:,frame), data(2,:,frame), data(3,:,frame),'o')
 		else
 			scatter3(data(1,:,frame), data(2,:,frame), data(3,:,frame),...
 				20, 'o',... % markersize and type
@@ -118,7 +120,5 @@ function animate3D(filePath, numPoints, axisMax)
 		close(myVideo);
 		msgbox(['Done! Video has been saved as ' myVideo.Filename ' in ' pwd])
 	end
-
-	
 
 end
