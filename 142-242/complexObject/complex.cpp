@@ -8,41 +8,7 @@
  */
 
 #include <stdio.h>
-
-template <class FP>
-struct complex{
-	FP a;
-	FP b;
-};
-
-//C=A+B
-template <class FP>
-inline void cAdd(complex<FP>& C, const complex<FP>& A, const complex<FP>& B){
-	C.a = A.a + B.a;
-	C.b = A.b + B.b;
-}
-
-//C=A-B
-template <class FP>
-inline void cSub(complex<FP>& C, const complex<FP>& A, const complex<FP>& B){
-	C.a = A.a - B.a;
-	C.b = A.b - B.b;
-}
-
-//A=B
-template <class FP>
-inline void cCpy(complex<FP>& A, const complex<FP>& B){
-	A.a = B.a;
-	A.b = B.b;
-}
-
-//C=A*B
-template <class FP>
-inline void cMult(complex<FP>& C, const complex<FP>& A, const complex<FP>& B){
-	printf("you can code multiplication yourself\n");
-}
-
-
+#include "complex.h"
 
 int main(int argc, char* argv[]){
 //	complex<float> x,y,z;
@@ -51,18 +17,22 @@ int main(int argc, char* argv[]){
 	x.a = 1.0;
 	x.b = 2.0;
 	
+	//test copy
 	cCpy(y,x);   // y = x;
 	
+	//test add
 	cAdd(z,x,y); //z = x + y
 	printf("Z = %f + i*%f\n", z.a, z.b);
 	
+	//test subtraction
 	cSub(z,x,y); //z = x - y
 	printf("Z = %f + i*%f\n", z.a, z.b);
 	
+	//test mulitplication
 	cMult(z,x,y);
 	printf("Z = %f + i*%f\n", z.a, z.b);
 	
-	//test Indexing
+	//test Indexing into an array
 	printf("Testing typcasting and indexing\n");
 	complex<float> A[10];
 	
