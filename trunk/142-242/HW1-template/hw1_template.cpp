@@ -28,7 +28,7 @@ using std::fill;
 //include function definitions
 #include "feynmanK.h"
 
-//change below to switch between double and float
+//change below to switch between double and float (double is SLOWER)
 #define FLOAT float
 
 //__CONSTANTS__
@@ -84,9 +84,9 @@ int main(int argc, char* argv[]){
 	cout << "Computing aggregate K matrix, Ke^" << K_POWER << "..."<<endl;
 	//create an aggregate K matri
 	complex<FLOAT>* KeN = (complex<FLOAT>*)malloc(sizeof(complex<FLOAT>)*X_DIM*X_DIM);
-	cSingleSqMatMatMult(KeN, Ke, Ke, X_DIM);//Ke^2
+	cSymSqMatMatMult(KeN, Ke, Ke, X_DIM);//Ke^2
 	for (int n=2; n<K_POWER; n++) { //Ke^K_POWER (dX^N term is already added)
-		cSingleSqMatMatMult(KeN, KeN, Ke, X_DIM);
+		cSymSqMatMatMult(KeN, KeN, Ke, X_DIM);
 	}
 	
 	cout << "Generating wave function..." << endl;
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]){
 		
 	for (int timeStep = 0; timeStep<MAX_K_OPS; timeStep++) {
 		//multiply wave function by KeN (propegate)
-		cSingleSqSymMatVectMult(psi,KeN,psi,X_DIM);
+		cSqMatVectMult(psi,KeN,psi,X_DIM);
 		
 		//then compute expectation values of x,v,potE,kinE,totE ...
 		//computeExpectation of x
