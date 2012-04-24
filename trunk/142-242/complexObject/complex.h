@@ -64,8 +64,8 @@ inline floatType cMagSq(complex<floatType> Z){
 //single symmetric square matrix-matrix multiplication
 template <class floatType>
 void cSymSqMatMatMult(complex<floatType>* result, complex<floatType>* matA, complex<floatType>* matB, const int dim){
-	//look up blas rutine
-	complex<floatType>* tempResult = (complex<floatType>*)malloc(sizeof(complex<floatType>)*dim*dim);
+ 
+ complex<floatType>* tempResult = (complex<floatType>*)malloc(sizeof(complex<floatType>)*dim*dim);
 	
 	int M = dim; //rows of A and C
 	int N = dim; //cols of B and C
@@ -108,7 +108,8 @@ void cSymSqMatMatMult(complex<floatType>* result, complex<floatType>* matA, comp
 //single square matrix-vector multiplication
 template <class floatType>
 void cSqMatVectMult(complex<floatType>* resultY, complex<floatType>* matA, complex<floatType>* vectX, int dim){
-		
+	 
+  complex<floatType>* tempY = (complex<floatType>*)malloc(sizeof(complex<floatType>)*dim);
 	int M = dim; //rows of A
 	int N = dim; //cols of A
 	int iDimA = dim; // first dim of A
@@ -125,7 +126,7 @@ void cSqMatVectMult(complex<floatType>* resultY, complex<floatType>* matA, compl
 		cblas_cgemv(CblasRowMajor,CblasNoTrans,
 					M,N,
 					&alpha, (float*)matA,iDimA, (float*)vectX, incX,
-					&beta,  (float*)resultY,incY);
+					&beta,  (float*)tempY,incY);
 		
 	}else if(sizeof(floatType) == sizeof(double)){ //assume double precision complex number
 		
@@ -133,9 +134,17 @@ void cSqMatVectMult(complex<floatType>* resultY, complex<floatType>* matA, compl
 		cblas_zgemv(CblasRowMajor,CblasNoTrans,
 					M,N,
 					&alpha, (double*)matA,iDimA, (double*)vectX, incX,
-					&beta,  (double*)resultY,incY);	
+					&beta,  (double*)tempY,incY);	
 	
 	}
+   
+  //copy result back to user's vector
+	for(int i=0; i<dim; i++){
+		cCpy(resultY[i],tempY[i]);
+	}
+	
+	//clean up
+	free(tempY);
 
 }
 
