@@ -1,39 +1,55 @@
 #ifndef _COMPLEX_H_
 #define _COMPLEX_H_
 
-#include <cbals.h>
+#include <cblas.h>
 
-template <class FP>
+template <class floatType>
 struct complex{
-	FP a;
-	FP b;
+	floatType a;
+	floatType b;
 };
 
 //C=A+B
-template <class FP>
-inline void cAdd(complex<FP>& C, const complex<FP>& A, const complex<FP>& B){
+template <class floatType>
+inline void cAdd(complex<floatType>& C, const complex<floatType>& A, const complex<floatType>& B){
 	C.a = A.a + B.a;
 	C.b = A.b + B.b;
 }
 
 //C=A-B
-template <class FP>
-inline void cSub(complex<FP>& C, const complex<FP>& A, const complex<FP>& B){
+template <class floatType>
+inline void cSub(complex<floatType>& C, const complex<floatType>& A, const complex<floatType>& B){
 	C.a = A.a - B.a;
 	C.b = A.b - B.b;
 }
 
 //A=B
-template <class FP>
-inline void cCpy(complex<FP>& A, const complex<FP>& B){
+template <class floatType>
+inline void cCpy(complex<floatType>& A, const complex<floatType>& B){
 	A.a = B.a;
 	A.b = B.b;
 }
 
 //C=A*B
-template <class FP>
-inline void cMult(complex<FP>& C, const complex<FP>& A, const complex<FP>& B){
+template <class floatType>
+inline void cMult(complex<floatType>& C, const complex<floatType>& A, const complex<floatType>& B){
 	printf("you can code multiplication yourself\n");
+}
+
+// Z = c/B where c is real
+template <class floatType>
+inline complex<floatType> cDiv(floatType c, const complex<floatType>& B){
+	complex<floatType> temp;
+	
+	temp.a = c*B.a/cMagSq(B); //real
+	temp.b = -c*B.b/cMagSq(B);//complex
+	
+	return temp;
+}
+
+template <class floatType>
+inline floatType cMagSq(complex<floatType> Z){
+	return Z.a*Z.a+Z.b*Z.b;
 }
 
 
@@ -42,9 +58,9 @@ inline void cMult(complex<FP>& C, const complex<FP>& A, const complex<FP>& B){
 //cublas doc: http://www.prism.gatech.edu/~ndantam3/cblas-doc/doc/html/main.html
 
 //single square matrix matrix multiplication
-void cSingleSqMatMatMult(complex<float>* result, complex<float>* matA, complex<float>* matB, int dim){
+void cSingleSqMatMatMult(complex<float>* result, complex<float>* matA, complex<float>* matB, const int dim){
 	//look up blas rutine
-	complex<float>* tempResult = new complex<float>[dim][dim];
+	complex<float>* tempResult = (complex<float>*)malloc(sizeof(complex<float>)*dim*dim);
 	
 	int M = dim; //rows of A and C
 	int N = dim; //cols of B and C
@@ -57,10 +73,10 @@ void cSingleSqMatMatMult(complex<float>* result, complex<float>* matA, complex<f
 	float beta = 0.0f;
 	
 	// update C = alpha*A*B + beta*C
-	cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,
+	cblas_cgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,
 				M,N,K,
-				alpha, (float*)matA,iDimA, (float*)matB, iDimB,
-				beta,  (float*)tempResult,iDimC);
+				&alpha, (float*)matA,iDimA, (float*)matB, iDimB,
+				&beta,  (float*)tempResult,iDimC);
 	
 	//copy result back
 	for(int i=0; i<dim*dim; i++){
@@ -68,13 +84,13 @@ void cSingleSqMatMatMult(complex<float>* result, complex<float>* matA, complex<f
 	}
 	
 	//clean up
-	delete tempResult;
+	free(tempResult);
 	
 }
 
 //single square matrix vector multiplication
 void cSingleSqSymMatVectMult(complex<float>* result, complex<float>* matA, complex<float>* vectX, int dim){
-	complex<float>* tempVectY = new complex<float>[dim];
+	complex<float>* tempVectY = (complex<float>*)malloc(sizeof(complex<float>)*dim);
 	
 	int M = dim; //rows of A
 	int N = dim; //cols of A
@@ -86,11 +102,11 @@ void cSingleSqSymMatVectMult(complex<float>* result, complex<float>* matA, compl
 	float alpha = 1.0f;
 	float beta = 0.0f;
 	
-	// update Y = alpha*A*X + beta*X
-	cblas_sgemv(CblasRowMajor,CblasNoTrans,
+	// update Y = alpha*A*X + beta*Y
+	cblas_cgemv(CblasRowMajor,CblasNoTrans,
 				M,N,
-				alpha, (float*)matA,iDimA, (float*)vectX, incX,
-				beta,  (float*)tempVectY,incY);
+				&alpha, (float*)matA,iDimA, (float*)vectX, incX,
+				&beta,  (float*)tempVectY,incY);
 	
 	//copy result back
 	for(int i=0; i<dim*dim; i++){
@@ -98,7 +114,7 @@ void cSingleSqSymMatVectMult(complex<float>* result, complex<float>* matA, compl
 	}
 	
 	//clean up
-	delete tempVectY;
+	free(tempVectY);
 }
 
 #endif
