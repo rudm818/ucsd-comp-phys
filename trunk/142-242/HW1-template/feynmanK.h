@@ -1,5 +1,5 @@
-#ifndef _TEMPLATE_FUNCTIONS_
-#define _TEMPLATE_FUNCTIONS_
+#ifndef _FEYNMAN_H_
+#define _FEYNMAN_H_
 
 #include "../complexObject/complex.h"
 
@@ -21,8 +21,10 @@ template <class floatType>
 void fillPropagator1D(complex<floatType>* K,floatType dX, floatType dT,floatType h, floatType m, floatType (*V_Fxn)(floatType),floatType* x, int DIM){
 	//some propagator code...
 	complex<floatType> A;
+	//NEEDS RIGHT VALUE
 	A.a = 0.0f;//real part
-	A.b = 1.0f;//complex part UPDATE THIS!!
+	A.b = 1.0f;//complex part
+	printf("MESSAGE from Mike on line %i of %s: You may want to define the correct A value!\n",__LINE__,__FILE__);
 	for (int i=0; i<DIM; i++) {
 		for (int j=0; j<DIM; j++) {
 			floatType argument = dT/h*(  m/2.0 * pow((x[j]-x[i])/dT,2.0) - (*V_Fxn)( (x[j]+x[i])/2.0 )  ) ;

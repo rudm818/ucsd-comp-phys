@@ -26,7 +26,7 @@ using std::fill;
 #include "../complexObject/complex.h"
 
 //include function definitions
-#include "templateFunctions.cpp"
+#include "feynmanK.h"
 
 //change below to switch between double and float
 #define FLOAT float
@@ -75,17 +75,21 @@ int main(int argc, char* argv[]){
 	FLOAT* xAxis = new FLOAT[X_DIM];
 	FLOAT deltaX = fillRange(xAxis, X_RANGE_LOW, X_RANGE_HI, X_DIM);
 
+	cout << "Filling K-epsilon matrix..." << endl;
 	//create and fill K-epsilon matrix
 	complex<FLOAT>* Ke = (complex<FLOAT>*)malloc(sizeof(complex<FLOAT>)*X_DIM*X_DIM); //malloc();
 	fillPropagator1D(Ke,deltaX,DELTA_T,PLANCKS,MASS,PotentialFxn,xAxis,X_DIM); //potential should be a FUNCTION that returns the potential as a function of position
 	
-	//create an aggregate K matrix
+	
+	cout << "Computing aggregate K matrix, Ke^" << K_POWER << "..."<<endl;
+	//create an aggregate K matri
 	complex<FLOAT>* KeN = (complex<FLOAT>*)malloc(sizeof(complex<FLOAT>)*X_DIM*X_DIM);
 	cSingleSqMatMatMult(KeN, Ke, Ke, X_DIM);//Ke^2
 	for (int n=2; n<K_POWER; n++) { //Ke^K_POWER (dX^N term is already added)
 		cSingleSqMatMatMult(KeN, KeN, Ke, X_DIM);
 	}
 	
+	cout << "Generating wave function..." << endl;
 	//create and fill waveFxn
 	complex<FLOAT>* psi = (complex<FLOAT>*)malloc(sizeof(complex<FLOAT>)*X_DIM); //empty
 	fillGaussianFxn(psi,NORM,X0,SIGMA,xAxis,X_DIM); //fills initial wave function
@@ -96,7 +100,7 @@ int main(int argc, char* argv[]){
 		
 		//then compute expectation values of x,v,potE,kinE,totE ...
 		//computeExpectation of x
-		cout << "<x>:" << expectationX(psi,xAxis,deltaX,X_DIM) << endl;	
+		cout << "<x> : " << expectationX(psi,xAxis,deltaX,X_DIM) << endl;	
 		//save data to file...
 	}
 	
