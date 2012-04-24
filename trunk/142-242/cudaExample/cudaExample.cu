@@ -13,7 +13,6 @@ using std::fill;
 
 /***** ERROR CHECKING MACRO *****/
 cudaError_t _TempErrorCode;
-//a DRR Suite (DS) error checking macro
 #define CHECK_CUDA_ERROR() _TempErrorCode = cudaGetLastError(); if(_TempErrorCode) fprintf(stderr,"!!CUDA ERROR in %s at line %d : %s\n",__FILE__,__LINE__,cudaGetErrorString(_TempErrorCode));
 
 
