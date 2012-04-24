@@ -61,7 +61,7 @@ inline floatType cMagSq(complex<floatType> Z){
 //cublas ref: http://techpubs.sgi.com/library/tpl/cgi-bin/getdoc.cgi?cmd=getdoc&coll=0650&db=man&fname=3%20INTRO_CBLAS
 //cublas doc: http://www.prism.gatech.edu/~ndantam3/cblas-doc/doc/html/main.html
 
-//single symmetric square matrix-matrix multiplication
+//complex single and double symmetric square matrix-matrix multiplication
 template <class floatType>
 void cSymSqMatMatMult(complex<floatType>* result, complex<floatType>* matA, complex<floatType>* matB, const int dim){
  
@@ -105,7 +105,7 @@ void cSymSqMatMatMult(complex<floatType>* result, complex<floatType>* matA, comp
 	
 }
 
-//single square matrix-vector multiplication
+//complex single and double precision square matrix-vector multiplication
 template <class floatType>
 void cSqMatVectMult(complex<floatType>* resultY, complex<floatType>* matA, complex<floatType>* vectX, int dim){
 	 
