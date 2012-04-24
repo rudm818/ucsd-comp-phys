@@ -1,7 +1,10 @@
 #ifndef _COMPLEX_H_
 #define _COMPLEX_H_
 
-#include <cblas.h>
+
+extern "C" {
+	#include <cblas.h>
+};
 
 template <class floatType>
 struct complex{
@@ -47,6 +50,7 @@ inline complex<floatType> cDiv(floatType c, const complex<floatType>& B){
 	return temp;
 }
 
+// |Z|^2
 template <class floatType>
 inline floatType cMagSq(complex<floatType> Z){
 	return Z.a*Z.a+Z.b*Z.b;
@@ -109,7 +113,7 @@ void cSingleSqSymMatVectMult(complex<float>* result, complex<float>* matA, compl
 				&beta,  (float*)tempVectY,incY);
 	
 	//copy result back
-	for(int i=0; i<dim*dim; i++){
+	for(int i=0; i<dim; i++){
 		cCpy(result[i],tempVectY[i]); //complex number copy
 	}
 	
