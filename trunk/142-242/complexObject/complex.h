@@ -93,8 +93,8 @@ void cSingleSqMatMatMult(complex<float>* result, complex<float>* matA, complex<f
 }
 
 //single square matrix vector multiplication
-void cSingleSqSymMatVectMult(complex<float>* result, complex<float>* matA, complex<float>* vectX, int dim){
-	complex<float>* tempVectY = (complex<float>*)malloc(sizeof(complex<float>)*dim);
+void cSingleSqSymMatVectMult(complex<float>* resultY, complex<float>* matA, complex<float>* vectX, int dim){
+	//complex<float>* tempVectY = (complex<float>*)malloc(sizeof(complex<float>)*dim);
 	
 	int M = dim; //rows of A
 	int N = dim; //cols of A
@@ -110,15 +110,15 @@ void cSingleSqSymMatVectMult(complex<float>* result, complex<float>* matA, compl
 	cblas_cgemv(CblasRowMajor,CblasNoTrans,
 				M,N,
 				&alpha, (float*)matA,iDimA, (float*)vectX, incX,
-				&beta,  (float*)tempVectY,incY);
+				&beta,  (float*)resultY,incY);
 	
 	//copy result back
-	for(int i=0; i<dim; i++){
-		cCpy(result[i],tempVectY[i]); //complex number copy
-	}
+	//for(int i=0; i<dim; i++){
+	//	cCpy(result[i],tempVectY[i]); //complex number copy
+	//}
 	
 	//clean up
-	free(tempVectY);
+	//free(tempVectY);
 }
 
 #endif
