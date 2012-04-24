@@ -1,3 +1,6 @@
+// AUTHOR: MICHAEL FOLKERTS - http://bit.ly/folkerts
+// April 2012
+
 #ifndef _FEYNMAN_H_
 #define _FEYNMAN_H_
 
@@ -15,29 +18,33 @@ floatType fillRange(floatType* Axis, floatType LOW, floatType HI, int DIM){
 }
 
 
-//here we are using a funtion as a parameter
+//here we are using a function (the potential) as a parameter
 //described here: http://stackoverflow.com/questions/9410/how-do-you-pass-a-function-as-a-parameter-in-c
 template <class floatType>
-void fillPropagator1D(complex<floatType>* K,floatType dX, floatType dT,floatType h, floatType m, floatType (*V_Fxn)(floatType),floatType* x, int DIM){
-	//some propagator code...
+void fillPropagator1D(complex<floatType>* K,floatType dX, floatType dT, floatType h, floatType m, floatType (*V_Fxn)(floatType),floatType* x, int DIM){
+  //Normalization
 	complex<floatType> A;
-	//NEEDS RIGHT VALUE
-	A.a = 0.0f;//real part
-	A.b = 1.0f;//complex part
+	//NEEDS CORRECT VALUE
+	A.a = 0.0f; //real part
+	A.b = 1.0f; //complex part
 	printf("MESSAGE from Mike on line %i of %s: You may want to define the correct A value!\n",__LINE__,__FILE__);
-	for (int i=0; i<DIM; i++) {
+
+  for (int i=0; i<DIM; i++) {
 		for (int j=0; j<DIM; j++) {
-			floatType argument = dT/h*(  m/2.0 * pow((x[j]-x[i])/dT,2.0) - (*V_Fxn)( (x[j]+x[i])/2.0 )  ) ;
-			//compute complex number exp[i * arg] = cos(arg) + i*sin(arg)
-			complex<floatType> Kelement;
-			complex<floatType> preFactor = cDiv(dX,A);// dX/A
-			Kelement.a = preFactor.a*cos(argument);//real
-			Kelement.b = preFactor.b*sin(argument);//complex part
+			floatType argument = dT/h*(  m/2.0 * pow( (x[j]-x[i])/dT , 2.0 ) - (*V_Fxn)( (x[j]+x[i])/2.0 )  ) ;
 			
-			K[i*DIM + j]= Kelement; //dX is added ALREADY see notes...
+      //compute complex number exp[i * arg] = cos(arg) + i*sin(arg)
+			complex<floatType> Kelement;
+			complex<floatType> preFactor = cDiv(dX,A);//complex division of real dX by complex A (dX/A)
+			
+      Kelement.a = preFactor.a*cos(argument);// real part
+			Kelement.b = preFactor.b*sin(argument);// complex part
+			
+			K[i*DIM + j]= Kelement; //note dX has already been multiplied by each element (see lecture notes...)
 		}
 	}
 }
+
 
 //computes normalized initial wave function
 template <class floatType>
@@ -51,15 +58,17 @@ void fillGaussianFxn(complex<floatType>* psi,floatType norm, floatType x0, float
 	
 }
 
+//computes the expectatino value of x
 template <class floatType>
 floatType expectationX(complex<floatType>* psi,floatType* xAxis,floatType dX, int DIM){
-	//<x> = integrate[conj(psi) x psi]
+	//notes: <X> = integrate[conj(psi) * X * psi]
 	floatType sum = 0.0f;
 	
 	for (int i=0; i<DIM; i++) {
 		sum += dX * xAxis[i] * cMagSq(psi[i]);//x[i]*Conj(psi)*psi = x[i]*cMag(psi)^2
 	}
 	return sum;
+
 }
 
 
