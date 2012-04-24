@@ -61,26 +61,39 @@ inline floatType cMagSq(complex<floatType> Z){
 //cublas ref: http://techpubs.sgi.com/library/tpl/cgi-bin/getdoc.cgi?cmd=getdoc&coll=0650&db=man&fname=3%20INTRO_CBLAS
 //cublas doc: http://www.prism.gatech.edu/~ndantam3/cblas-doc/doc/html/main.html
 
-//single square matrix matrix multiplication
-void cSingleSqMatMatMult(complex<float>* result, complex<float>* matA, complex<float>* matB, const int dim){
+//single symmetric square matrix-matrix multiplication
+template <class floatType>
+void cSymSqMatMatMult(complex<floatType>* result, complex<floatType>* matA, complex<floatType>* matB, const int dim){
 	//look up blas rutine
-	complex<float>* tempResult = (complex<float>*)malloc(sizeof(complex<float>)*dim*dim);
+	complex<floatType>* tempResult = (complex<floatType>*)malloc(sizeof(complex<floatType>)*dim*dim);
 	
 	int M = dim; //rows of A and C
 	int N = dim; //cols of B and C
-	int K = dim; //cols of A and rows of B
+	//int K = dim; //cols of A and rows of B
 	int iDimA = dim; // first dim of A
 	int iDimB = dim; // first dim of B
 	int iDimC = dim; // fisrt dim of C
 	
-	float alpha = 1.0f;
-	float beta = 0.0f;
+	floatType alpha = 1.0f;
+	floatType beta = 0.0f;
 	
-	// update C = alpha*A*B + beta*C
-	cblas_cgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,
-				M,N,K,
-				&alpha, (float*)matA,iDimA, (float*)matB, iDimB,
-				&beta,  (float*)tempResult,iDimC);
+	//check precision dynamically
+	if( sizeof(floatType) == sizeof(float)){ //assume single precision
+		
+		// update C = alpha*A*B + beta*C where A = Transpose(A) (symmetric)
+		cblas_csymm(CblasRowMajor,CblasLeft,CblasUpper,
+					M,N,
+					&alpha, (float*)matA,iDimA, (float*)matB, iDimB,
+					&beta,  (float*)tempResult,iDimC);
+		
+	}else if(sizeof(floatType) == sizeof(double)){ //assume double precision
+		
+		// update C = alpha*A*B + beta*C where A = Transpose(A) (symmetric)
+		cblas_zsymm(CblasRowMajor,CblasLeft,CblasUpper,
+					M,N,
+					&alpha, (double*)matA,iDimA, (double*)matB, iDimB,
+					&beta,  (double*)tempResult,iDimC);
+	}
 	
 	//copy result back
 	for(int i=0; i<dim*dim; i++){
@@ -92,10 +105,10 @@ void cSingleSqMatMatMult(complex<float>* result, complex<float>* matA, complex<f
 	
 }
 
-//single square matrix vector multiplication
-void cSingleSqSymMatVectMult(complex<float>* resultY, complex<float>* matA, complex<float>* vectX, int dim){
-	//complex<float>* tempVectY = (complex<float>*)malloc(sizeof(complex<float>)*dim);
-	
+//single square matrix-vector multiplication
+template <class floatType>
+void cSqMatVectMult(complex<floatType>* resultY, complex<floatType>* matA, complex<floatType>* vectX, int dim){
+		
 	int M = dim; //rows of A
 	int N = dim; //cols of A
 	int iDimA = dim; // first dim of A
@@ -103,22 +116,27 @@ void cSingleSqSymMatVectMult(complex<float>* resultY, complex<float>* matA, comp
 	int incY = 1;    // uses every incY'th value in Y
 
 	
-	float alpha = 1.0f;
-	float beta = 0.0f;
+	floatType alpha = 1.0f;
+	floatType beta = 0.0f;
 	
-	// update Y = alpha*A*X + beta*Y
-	cblas_cgemv(CblasRowMajor,CblasNoTrans,
-				M,N,
-				&alpha, (float*)matA,iDimA, (float*)vectX, incX,
-				&beta,  (float*)resultY,incY);
+	if( sizeof(floatType) == sizeof(float)){ //assume single precision complex number
+		
+		// update Y = alpha*A*X + beta*Y
+		cblas_cgemv(CblasRowMajor,CblasNoTrans,
+					M,N,
+					&alpha, (float*)matA,iDimA, (float*)vectX, incX,
+					&beta,  (float*)resultY,incY);
+		
+	}else if(sizeof(floatType) == sizeof(double)){ //assume double precision complex number
+		
+		// update Y = alpha*A*X + beta*Y
+		cblas_zgemv(CblasRowMajor,CblasNoTrans,
+					M,N,
+					&alpha, (double*)matA,iDimA, (double*)vectX, incX,
+					&beta,  (double*)resultY,incY);	
 	
-	//copy result back
-	//for(int i=0; i<dim; i++){
-	//	cCpy(result[i],tempVectY[i]); //complex number copy
-	//}
-	
-	//clean up
-	//free(tempVectY);
+	}
+
 }
 
 #endif
