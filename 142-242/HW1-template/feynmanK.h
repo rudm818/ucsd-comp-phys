@@ -8,8 +8,10 @@
 
 //functions used in hw1_template.cpp
 
+//fills axis with range of values
 template <class floatType>
 floatType fillRange(floatType* Axis, floatType LOW, floatType HI, int DIM){
+
 	floatType delta = (HI-LOW)/float(DIM-1); //note the '-1' is required to fill whole range
 	for(int i=0; i<DIM; i++){
 		Axis[i] = LOW + floatType(i)*delta;
@@ -22,8 +24,9 @@ floatType fillRange(floatType* Axis, floatType LOW, floatType HI, int DIM){
 //described here: http://stackoverflow.com/questions/9410/how-do-you-pass-a-function-as-a-parameter-in-c
 template <class floatType>
 void fillPropagator1D(complex<floatType>* K,floatType dX, floatType dT, floatType h, floatType m, floatType (*V_Fxn)(floatType),floatType* x, int DIM){
+  
   //Normalization
-	complex<floatType> A;
+  complex<floatType> A;
 	//NEEDS CORRECT VALUE
 	A.a = 0.0f; //real part
 	A.b = 1.0f; //complex part
@@ -55,20 +58,19 @@ void fillGaussianFxn(complex<floatType>* psi,floatType norm, floatType x0, float
 		psi[i].a = norm * exp( pow(xAxis[i]-x0,2.0)/sigmaSquared );
 		psi[i].b = 0.0;
 	}
-	
 }
 
 //computes the expectatino value of x
 template <class floatType>
 floatType expectationX(complex<floatType>* psi,floatType* xAxis,floatType dX, int DIM){
-	//notes: <X> = integrate[conj(psi) * X * psi]
+	
+  //notes: <X> = integrate[conj(psi) * X * psi]
 	floatType sum = 0.0f;
 	
 	for (int i=0; i<DIM; i++) {
 		sum += dX * xAxis[i] * cMagSq(psi[i]);//x[i]*Conj(psi)*psi = x[i]*cMag(psi)^2
 	}
 	return sum;
-
 }
 
 
