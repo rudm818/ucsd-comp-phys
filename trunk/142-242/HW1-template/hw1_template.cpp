@@ -3,15 +3,10 @@
  *  
  *
  *  Created by Michael M Folkerts on 4/23/12.
+ *  Last Modified 4/25/12 -> fixed complex number issue in cblas, now using c++'s stl complex object
  *
  */
 
-//cuda
-//#include <cuda.h>
-
-//blas
-//#include <cblas.h>
-#include <math.h>
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -23,7 +18,11 @@ using std::ofstream;
 using std::fill;
 
 //allow complex numbers (from "our" library)
-#include "../complexObject/complex.h"
+//#include "../complexObject/complex.h"
+
+//c++ complex number class, documented here: http://www.cplusplus.com/reference/std/complex/
+#include <complex>
+using std::complex;
 
 //include function definitions
 #include "feynmanK.h"
@@ -31,59 +30,57 @@ using std::fill;
 //change below to switch between double and float (double is SLOWER)
 #define FLOAT float
 
+
 //__CONSTANTS__
-FLOAT PI = acos(-1.0);
+FLOAT PI      = acos(-1.0);
 FLOAT PLANCKS = 1.0;//Planck's constant
-FLOAT MASS   = 1.0;//mass of particle
+FLOAT MASS    = 1.0;//mass of particle
 
 
 //__PARAMETERS__
 
 //defines length of wave-funtion potential
-const int X_DIM = 600;
+const int X_DIM = 1024;
 
-//wave function parameters
-const FLOAT SIGMA = 1.0f;
-const FLOAT X0 = 0.75f;
-const FLOAT NORM = pow(2.0/PI,0.25);
+//Gaussian wave function parameters, see class notes
+const FLOAT ALPHA = 2.0;
+const FLOAT    X0 = 0.75f;
 
 //define potential function (used for Legrangian = KE - PotentialFxn)
+//can be anything really!
 FLOAT PotentialFxn( FLOAT x){
-	return pow(x,2.0f)/2.0f; //1D harmonic oscilator
+	return x*x/2.0; //1D harmonic oscilator
 }
 
 //defines x-axis from - X_RANGE_LOW to + X_RANGE_HI
-const FLOAT X_RANGE_LOW = -4.0f;
-const FLOAT X_RANGE_HI  =  4.0f;
+const FLOAT X_RANGE_LOW = -4.0;
+const FLOAT  X_RANGE_HI =  4.0;
 
 //integration factors and limits
-const FLOAT DELTA_T = 0.01f;
-const int K_POWER =  4; //the power of the aggregate KeN = (Kepsilon)^K_POWER
-const int MAX_K_OPS = 100; // totalTime = K_POWER*DELTA_T * MAX_K_OPS
+const FLOAT EPSILON_T = 0.01;
+const int     K_POWER = 4;     // the power of the aggregate KeN = (Ke)^K_POWER
+const int     N_STEPS = 20;    // totalTime = K_POWER*EPSILON_T * N_STEPS
 
 
 //__main function__
 int main(int argc, char* argv[]){
 
-	//sanity check
-	if( 2*sizeof(FLOAT) != sizeof(complex<FLOAT>) ){
-		cout << "ERROR, complex structure is bad!\n";
-		exit(1);
-	}
+	cout << endl << argv[0] << " Running... " << endl << endl;
 
 	//create and fill descretized x-axis:
 	FLOAT* xAxis = new FLOAT[X_DIM];
 	FLOAT deltaX = fillRange(xAxis, X_RANGE_LOW, X_RANGE_HI, X_DIM);
 
-	cout << "Filling K-epsilon matrix..." << endl;
+	cout << "Filling K-epsilon matrix... with dX=" << deltaX << endl;
 	//create and fill K-epsilon matrix
-	complex<FLOAT>* Ke = (complex<FLOAT>*)malloc(sizeof(complex<FLOAT>)*X_DIM*X_DIM); //malloc();
-	fillPropagator1D(Ke,deltaX,DELTA_T,PLANCKS,MASS,PotentialFxn,xAxis,X_DIM); //potential should be a FUNCTION that returns the potential as a function of position
+	complex<FLOAT>* Ke = new complex<FLOAT>[X_DIM*X_DIM];
+	fillPropagator1D(Ke,deltaX,EPSILON_T,PLANCKS,MASS,PotentialFxn,xAxis,X_DIM);
+	//NOTE: in above call 'PotentialFxn' should be a FUNCTION that returns the value of the potential with position as input
 	
 	
 	cout << "Computing aggregate K matrix, Ke^" << K_POWER << "..."<<endl;
 	//create an aggregate K matri
-	complex<FLOAT>* KeN = (complex<FLOAT>*)malloc(sizeof(complex<FLOAT>)*X_DIM*X_DIM);
+	complex<FLOAT>* KeN = new complex<FLOAT>[X_DIM*X_DIM];
 	cSymSqMatMatMult(KeN, Ke, Ke, X_DIM);//Ke^2
 	for (int n=2; n<K_POWER; n++) { //Ke^K_POWER (dX^N term is already added)
 		cSymSqMatMatMult(KeN, KeN, Ke, X_DIM);
@@ -91,22 +88,38 @@ int main(int argc, char* argv[]){
 	
 	cout << "Generating wave function..." << endl;
 	//create and fill waveFxn
-	complex<FLOAT>* psi = (complex<FLOAT>*)malloc(sizeof(complex<FLOAT>)*X_DIM); //empty
-	fillGaussianFxn(psi,NORM,X0,SIGMA,xAxis,X_DIM); //fills initial wave function
-		
-	for (int timeStep = 0; timeStep<MAX_K_OPS; timeStep++) {
-		//multiply wave function by KeN (propegate)
+	complex<FLOAT>* psi = new complex<FLOAT>[X_DIM]; //empty
+	fillGaussianFxn(psi,X0,ALPHA,xAxis,X_DIM); //fills and normalizes initial wave function
+
+	
+	cout << "INITIAL <psi|psi>:" << sqWaveFxn(psi,X_DIM) << endl;
+	cout << "INITIAL <x> : " << expectationX(psi,xAxis,deltaX,X_DIM) << endl;
+	
+	//propagate
+	for (int timeStep = 0; timeStep<N_STEPS; timeStep++) {
+
+		//multiply wave function by KeN (propagate deltaT = K_POWER * EPSILON_T)
 		cSqMatVectMult(psi,KeN,psi,X_DIM);
 		
 		//then compute expectation values of x,v,potE,kinE,totE ...
+		
 		//computeExpectation of x
-		cout << "<x> : " << expectationX(psi,xAxis,deltaX,X_DIM) << endl;	
+		cout << "<x> : " << expectationX(psi,xAxis,deltaX,X_DIM) << endl;		
+		
+		//normalizeWaveFxn(psi,X_DIM); //a hacky way to get it to look like it's working
+
+		//check normalization:
+		cout << "<psi|psi>:" << sqWaveFxn(psi,X_DIM) << endl;
+			
 		//save data to file...
 	}
 	
+	
 	//clean up memory
-	delete xAxis;
-	free(Ke);
-	free(KeN);
-	free(psi);
+	delete[] xAxis;
+	delete[] Ke;
+	delete[] KeN;
+	delete[] psi;
+	
+	cout << endl << argv[0] << " Done! " << endl << endl;
 }
