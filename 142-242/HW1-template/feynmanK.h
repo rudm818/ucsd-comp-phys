@@ -21,7 +21,7 @@ extern "C" {
 template <class floatType>
 floatType fillRange(floatType* Axis, floatType LOW, floatType HI, int DIM){
 
-	floatType delta = (HI-LOW)/float(DIM-1); //note the '-1' is required to fill whole range
+	floatType delta = (HI-LOW)/floatType(DIM-1); //note the '-1' is required to fill whole range
 	for(int i=0; i<DIM; i++){
 		Axis[i] = LOW + floatType(i)*delta;
 	}
@@ -37,23 +37,20 @@ void fillPropagator1D(complex<floatType>* K,floatType dX, floatType dT, floatTyp
 	floatType pi = acos(-1.0);
 	
 	//Normalization
-	floatType temp = 1.0; //NEEDS CORRECT VALUE
-	complex<floatType> A(temp,temp); // constructor (real part, imag. part)
-	printf("MESSAGE from Mike on line %i of %s: You may want to define the correct A value!\n",__LINE__,__FILE__);
+	floatType preFactor = dX/sqrt( 4.0*pi*sin(dT) );// from fortran code NOTE dX is here ONCE
 	
-
-	complex<floatType> preFactor = dX/A;
 	cout << "preFactor dX/A: " << preFactor <<endl;
 	
 	for (int i=0; i<DIM; i++) {
 		for (int j=0; j<DIM; j++) {
-			floatType argument = dT/h*(  m/2.0 * pow( (x[j]-x[i])/dT , 2.0 ) - (*V_Fxn)( (x[j]+x[i])/2.0 )  ) ;
-			
+			floatType argument = dT/h*( m*pow( (x[j]-x[i])/dT, 2)/2.0 - (*V_Fxn)( (x[j]+x[i])/2.0 )  ) ;
+			//floatType argument = pow(x[i]-x[j],2)/(2.0*dT) - pow(x[i]-x[j],2)*dT*0.125; //from fortran code
+
 			//compute complex number exp[i * arg] = cos(arg) + i*sin(arg):
-			complex<floatType> Kelement(preFactor.real()*cos(argument),   //real part
-										preFactor.imag()*sin(argument));  //imag. part
+			complex<floatType> Kelement(preFactor*(sin(argument)+cos(argument)),   //real part
+										preFactor*(sin(argument)-cos(argument)) );  //imag. part
 			
-			K[i*DIM + j] = Kelement; //note dX has already been multiplied by each element (see preFactor)
+			K[i*DIM + j] = Kelement;
 		}
 	}
 }
@@ -65,26 +62,13 @@ template <class floatType>
 void fillGaussianFxn(complex<floatType>* psi, floatType x0, floatType alpha, floatType* xAxis, int DIM){
 
 	floatType pi = acos(-1.0);
+	//printf("%f",pi); //pi is okay
 	
 	for(int i=0; i<DIM; i++){
-		psi[i] = complex<floatType>( pow(alpha/pi,0.25) * exp( - (alpha/2)*pow(xAxis[i]-x0,2.0)),
+		psi[i] = complex<floatType>( pow(alpha/pi,0.25) * exp( -(alpha/2.0)*pow(xAxis[i]-x0,2) ),
 									 0.0);
 	}
 	
-	normalizeWaveFxn(psi,DIM);
-	
-}
-
-//normalizes given wave fxn
-template <class floatType>
-void normalizeWaveFxn(complex<floatType>* psi, int DIM){
-	//now normalize!!
-	floatType normFactor = 1.0/sqrt(sqWaveFxn(psi, DIM));
-
-	for(int i=0; i<DIM; i++){
-		psi[i] *= normFactor;
-	}
-
 }
 
 
@@ -98,18 +82,18 @@ floatType expectationX(complex<floatType>* psi,floatType* xAxis,floatType dX, in
 	for (int i=0; i<DIM; i++) {
 		sum += xAxis[i] * norm(psi[i]);// norm is abs(Z)^2
 	}
-	return sum;
+	return sum*dX;
 }
 
 
 template <class floatType>
-floatType sqWaveFxn(complex<floatType>* wave, int dim){
+floatType sqWaveFxn(complex<floatType>* wave,floatType dX, int dim){
 	floatType sum = 0;
 	
 	for(int i=0; i<dim; i++){
 		sum += norm(wave[i]);
 	}
-	return sum;
+	return sum*dX;
 }
 
 //this was just to check that cblas was working properly... it's slow

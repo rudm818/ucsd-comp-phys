@@ -28,28 +28,28 @@ using std::complex;
 #include "feynmanK.h"
 
 //change below to switch between double and float (double is SLOWER)
-#define FLOAT float
+#define FLOAT double
 
 
 //__CONSTANTS__
 FLOAT PI      = acos(-1.0);
-FLOAT PLANCKS = 1.0;//Planck's constant
-FLOAT MASS    = 1.0;//mass of particle
+FLOAT PLANCKS = 1.0f;//Planck's constant
+FLOAT MASS    = 1.0f;//mass of particle
 
 
 //__PARAMETERS__
 
 //defines length of wave-funtion potential
-const int X_DIM = 1024;
+const int X_DIM = 601;
 
 //Gaussian wave function parameters, see class notes
 const FLOAT ALPHA = 2.0;
-const FLOAT    X0 = 0.75f;
+const FLOAT    X0 = 0.75;
 
 //define potential function (used for Legrangian = KE - PotentialFxn)
 //can be anything really!
 FLOAT PotentialFxn( FLOAT x){
-	return x*x/2.0; //1D harmonic oscilator
+	return x*x/2.0; //1D harmonic oscilator with K=1
 }
 
 //defines x-axis from - X_RANGE_LOW to + X_RANGE_HI
@@ -57,10 +57,9 @@ const FLOAT X_RANGE_LOW = -4.0;
 const FLOAT  X_RANGE_HI =  4.0;
 
 //integration factors and limits
-const FLOAT EPSILON_T = 0.01;
+const int     N_STEPS = 128;    // totalTime = K_POWER*EPSILON_T * N_STEPS
 const int     K_POWER = 4;     // the power of the aggregate KeN = (Ke)^K_POWER
-const int     N_STEPS = 20;    // totalTime = K_POWER*EPSILON_T * N_STEPS
-
+const FLOAT EPSILON_T = 2.0*PI/FLOAT(N_STEPS);
 
 //__main function__
 int main(int argc, char* argv[]){
@@ -75,7 +74,7 @@ int main(int argc, char* argv[]){
 	//create and fill K-epsilon matrix
 	complex<FLOAT>* Ke = new complex<FLOAT>[X_DIM*X_DIM];
 	fillPropagator1D(Ke,deltaX,EPSILON_T,PLANCKS,MASS,PotentialFxn,xAxis,X_DIM);
-	//NOTE: in above call 'PotentialFxn' should be a FUNCTION that returns the value of the potential with position as input
+	//NOTE: in above 'PotentialFxn' should be a FUNCTION that returns the value of the potential with position as input
 	
 	
 	cout << "Computing aggregate K matrix, Ke^" << K_POWER << "..."<<endl;
@@ -92,7 +91,7 @@ int main(int argc, char* argv[]){
 	fillGaussianFxn(psi,X0,ALPHA,xAxis,X_DIM); //fills and normalizes initial wave function
 
 	
-	cout << "INITIAL <psi|psi>:" << sqWaveFxn(psi,X_DIM) << endl;
+	cout << "INITIAL <psi|psi>:" << sqWaveFxn(psi,deltaX,X_DIM) << endl;
 	cout << "INITIAL <x> : " << expectationX(psi,xAxis,deltaX,X_DIM) << endl;
 	
 	//propagate
@@ -106,10 +105,8 @@ int main(int argc, char* argv[]){
 		//computeExpectation of x
 		cout << "<x> : " << expectationX(psi,xAxis,deltaX,X_DIM) << endl;		
 		
-		//normalizeWaveFxn(psi,X_DIM); //a hacky way to get it to look like it's working
-
 		//check normalization:
-		cout << "<psi|psi>:" << sqWaveFxn(psi,X_DIM) << endl;
+		cout << "<psi|psi>:" << sqWaveFxn(psi,deltaX,X_DIM) << endl;
 			
 		//save data to file...
 	}
