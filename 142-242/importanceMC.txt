@@ -1,0 +1,9 @@
+Importance Sampling (repeat for each x in integration set)
+
+Given x[i] and Delta (That gives acceptance rate of about 50%)
+
+Draw X = SampleRandomInterval(x[i]-Delta, x[i]+Delta)
+
+Compute R = p(X)/p(x[i])
+if R >= 1, Then accept x[i+1] = X
+else, accept x[i+1] = X with probability R
